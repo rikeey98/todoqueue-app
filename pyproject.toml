@@ -1,0 +1,57 @@
+[project]
+name = "todoqueue"
+version = "1.0.0"
+description = "시간순 우선순위 기반 할일 관리 도구"
+authors = [
+    { name = "Your Name", email = "your.email@example.com" }
+]
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.8"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: Microsoft :: Windows",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Office/Business :: Scheduling",
+    "Topic :: Software Development :: Widget Sets",
+]
+keywords = ["todo", "task-manager", "productivity", "tkinter", "queue"]
+
+dependencies = [
+    # 표준 라이브러리만 사용하므로 외부 의존성 없음
+]
+
+[project.optional-dependencies]
+dev = [
+    "pyinstaller>=6.0.0",
+    "black>=23.0.0",
+    "flake8>=6.0.0",
+    "pytest>=7.0.0",
+]
+
+[project.scripts]
+todoqueue = "todoqueue.main:main"
+
+[project.urls]
+Homepage = "https://github.com/YOUR_USERNAME/todoqueue-app"
+Repository = "https://github.com/YOUR_USERNAME/todoqueue-app"
+Issues = "https://github.com/YOUR_USERNAME/todoqueue-app/issues"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.black]
+line-length = 88
+target-version = ['py38']
+
+[tool.flake8]
+max-line-length = 88
+extend-ignore = ["E203", "W503"]
