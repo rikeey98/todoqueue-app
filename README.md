@@ -27,37 +27,6 @@ uv sync
 uv run todoqueue
 ```
 
-#### SSL 검증 문제가 있는 경우
-
-방화벽이나 프록시 환경에서 SSL 인증서 검증 오류가 발생하는 경우:
-
-**방법 1: 스크립트 사용 (권장)**
-```bash
-# Windows
-uv-sync-insecure.bat
-
-# Linux/Mac
-./uv-sync-insecure.sh
-```
-
-**방법 2: 환경변수 설정**
-```bash
-# Windows
-set UV_INSECURE_HOST=pypi.org,files.pythonhosted.org
-uv sync
-
-# Linux/Mac
-export UV_INSECURE_HOST=pypi.org,files.pythonhosted.org
-uv sync
-```
-
-**방법 3: 직접 옵션 지정**
-```bash
-uv sync --allow-insecure-host pypi.org --allow-insecure-host files.pythonhosted.org
-```
-
-> ⚠️ **보안 경고**: SSL 검증 비활성화는 보안 위험이 있습니다. 신뢰할 수 있는 네트워크 환경에서만 사용하세요.
-
 ### 기존 Python 환경 사용
 ```bash
 # 가상환경 생성 및 활성화
