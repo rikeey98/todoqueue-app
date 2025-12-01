@@ -522,26 +522,7 @@ class TodoQueueApp:
         
         for i, todo in enumerate(todos):
             self.create_todo_widget(todo, i)
-    
-    def create_todo_widget(self, todo: TodoItem, index: int):
-        """할일 위젯 생성 (기존과 동일)"""
-        # 기존 create_todo_widget 코드와 동일
-        # ... (너무 길어서 생략, 기존 코드 사용)
-        pass
-    
-    # 드래그&드롭 관련 메소드들 (기존과 동일)
-    def start_drag(self, event, index):
-        self.drag_data["item"] = index
-        self.drag_data["start_y"] = event.y_root
-    
-    def on_drag(self, event):
-        if self.drag_data["item"] is not None:
-            pass
-    
-    def on_drop(self, event):
-        # 기존 on_drop 코드와 동일
-        pass
-    
+
     def complete_todo(self, todo_id):
         try:
             self.db.complete_todo(todo_id)
@@ -762,7 +743,32 @@ TodoQueue v{__version__}
                 widget.bind("<Button-1>", lambda e, idx=index: self.start_drag(e, idx))
                 widget.bind("<B1-Motion>", self.on_drag)
                 widget.bind("<ButtonRelease-1>", self.on_drop)
-    
+
+    def start_drag(self, event, index):
+        """드래그 시작"""
+        self.drag_data["item"] = index
+        self.drag_data["start_y"] = event.y_root
+        # 드래그 시작 시 커서 변경
+        event.widget.config(cursor="hand2")
+        self.status_bar.config(text=f"할일 #{index + 1} 이동 중...")
+
+    def on_drag(self, event):
+        """드래그 중 시각적 피드백"""
+        if self.drag_data["item"] is not None:
+            # 현재 마우스 위치 기반 예상 이동 거리 계산
+            widget_height = 70
+            y_offset = event.y_root - self.drag_data["start_y"]
+            position_change = round(y_offset / widget_height)
+
+            if position_change != 0:
+                start_index = self.drag_data["item"]
+                todos = self.db.get_pending_todos()
+                target_index = max(0, min(len(todos) - 1, start_index + position_change))
+
+                # 상태바에 예상 위치 표시
+                if target_index != start_index:
+                    self.status_bar.config(text=f"할일 #{start_index + 1} → #{target_index + 1}로 이동")
+
     def on_drop(self, event):
         """드래그 완료 처리"""
         if self.drag_data["item"] is not None:
