@@ -431,7 +431,7 @@ class TodoQueueApp:
         tk.Label(toolbar, text="✅ 완료된 할일", 
                 font=('Arial', 13, 'bold'), bg='#27ae60', fg='white').pack(side=tk.LEFT, padx=15, pady=12)
         
-        clear_btn = tk.Button(toolbar, text="🗑️ 전체 삭제", command=self.clear_completed,
+        clear_btn = tk.Button(toolbar, text="🚽 전체 삭제", command=self.clear_completed,
                              bg='#e74c3c', fg='white', relief=tk.FLAT,
                              font=('Arial', 10), cursor='hand2', padx=15, pady=5)
         clear_btn.pack(side=tk.RIGHT, padx=15, pady=10)
@@ -747,7 +747,8 @@ class TodoQueueApp:
    • '할일 목록' 탭에서 대기중인 할일 확인
    • 드래그&드롭으로 순서 조정
    • ✅ 버튼으로 완료 처리
-   • 🗑️ 버튼으로 삭제
+   • ✏️ 버튼으로 수정
+   • 🚽 버튼으로 삭제
 
 🔹 완료된 할일:
    • '완료된 할일' 탭에서 완료 이력 확인
@@ -875,7 +876,7 @@ TodoQueue v{__version__}
         edit_btn.pack(side=tk.TOP, pady=(0, 6))
 
         # Delete button
-        delete_btn = tk.Button(button_frame, text="🗑️",
+        delete_btn = tk.Button(button_frame, text="🚽",
                              command=lambda: self.delete_todo(todo.id),
                              bg='#e74c3c', fg='white', relief=tk.FLAT,
                              font=('Arial', 14), cursor='hand2',
