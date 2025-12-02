@@ -863,7 +863,7 @@ TodoQueue v{__version__}
                                command=lambda: self.complete_todo(todo.id),
                                bg='#27ae60', fg='white', relief=tk.FLAT,
                                font=('Arial', 14), cursor='hand2',
-                               width=3, height=1)
+                               width=3, height=1, anchor=tk.CENTER)
         complete_btn.pack(side=tk.TOP, pady=(0, 6))
 
         # Edit button
@@ -871,7 +871,7 @@ TodoQueue v{__version__}
                            command=lambda: self.edit_todo(todo.id),
                            bg='#f39c12', fg='white', relief=tk.FLAT,
                            font=('Arial', 14), cursor='hand2',
-                           width=3, height=1)
+                           width=3, height=1, anchor=tk.CENTER)
         edit_btn.pack(side=tk.TOP, pady=(0, 6))
 
         # Delete button
@@ -879,7 +879,7 @@ TodoQueue v{__version__}
                              command=lambda: self.delete_todo(todo.id),
                              bg='#e74c3c', fg='white', relief=tk.FLAT,
                              font=('Arial', 14), cursor='hand2',
-                             width=3, height=1)
+                             width=3, height=1, anchor=tk.CENTER)
         delete_btn.pack(side=tk.TOP)
         
         # Drag indicator
