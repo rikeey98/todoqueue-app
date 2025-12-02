@@ -168,12 +168,26 @@ class TodoDatabase:
         """할일 삭제"""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
-        
+
         cursor.execute('DELETE FROM todos WHERE id = ?', (todo_id,))
-        
+
         conn.commit()
         conn.close()
-    
+
+    def update_todo(self, todo_id: int, text: str, category: str = '', tags: str = ''):
+        """할일 내용 수정"""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+
+        cursor.execute('''
+            UPDATE todos
+            SET text = ?, category = ?, tags = ?
+            WHERE id = ?
+        ''', (text, category, tags, todo_id))
+
+        conn.commit()
+        conn.close()
+
     def update_todo_order(self, todo_items: List[tuple]):
         """할일 순서 업데이트"""
         conn = sqlite3.connect(self.db_path)
@@ -540,7 +554,135 @@ class TodoQueueApp:
                 self.status_bar.config(text="할일이 삭제되었습니다.")
             except Exception as e:
                 messagebox.showerror("오류", f"할일 삭제 중 오류: {str(e)}")
-    
+
+    def edit_todo(self, todo_id):
+        """할일 수정 다이얼로그 열기"""
+        # 현재 할일 정보 가져오기
+        todos = self.db.get_pending_todos()
+        current_todo = None
+        for todo in todos:
+            if todo.id == todo_id:
+                current_todo = todo
+                break
+
+        if not current_todo:
+            messagebox.showerror("오류", "할일을 찾을 수 없습니다.")
+            return
+
+        # 수정 다이얼로그 창 생성
+        edit_window = tk.Toplevel(self.root)
+        edit_window.title("할일 수정")
+        edit_window.geometry("600x450")
+        edit_window.resizable(False, False)
+        edit_window.configure(bg='#f0f0f0')
+
+        # 모달 윈도우로 설정
+        edit_window.transient(self.root)
+        edit_window.grab_set()
+
+        # 제목
+        title_label = tk.Label(edit_window, text="✏️ 할일 수정",
+                              font=('Arial', 18, 'bold'), bg='#f0f0f0', fg='#2c3e50')
+        title_label.pack(pady=(20, 25))
+
+        # 입력 프레임
+        input_frame = tk.Frame(edit_window, bg='#ffffff', relief=tk.RAISED, bd=2)
+        input_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=(0, 20))
+
+        # 할일 내용
+        tk.Label(input_frame, text="할일 내용:", font=('Arial', 12, 'bold'),
+                bg='#ffffff', fg='#34495e').pack(anchor=tk.W, padx=20, pady=(20, 8))
+
+        text_entry = tk.Text(input_frame, height=4, font=('Arial', 11),
+                            wrap=tk.WORD, relief=tk.FLAT, bg='#f8f9fa', bd=1)
+        text_entry.pack(padx=20, pady=(0, 15), fill=tk.X)
+        text_entry.insert("1.0", current_todo.text)
+
+        # 메타 정보 프레임
+        meta_frame = tk.Frame(input_frame, bg='#ffffff')
+        meta_frame.pack(fill=tk.X, padx=20, pady=(0, 20))
+
+        # 카테고리
+        cat_frame = tk.Frame(meta_frame, bg='#ffffff')
+        cat_frame.pack(fill=tk.X, pady=(0, 12))
+
+        tk.Label(cat_frame, text="📁 카테고리:", font=('Arial', 11, 'bold'),
+                bg='#ffffff', fg='#34495e').pack(side=tk.LEFT)
+
+        category_var = tk.StringVar(value=current_todo.category)
+        category_combo = ttk.Combobox(cat_frame, textvariable=category_var,
+                                     width=25, font=('Arial', 10))
+        category_combo['values'] = self.db.get_categories()
+        category_combo.pack(side=tk.LEFT, padx=(12, 0))
+
+        # 태그
+        tag_frame = tk.Frame(meta_frame, bg='#ffffff')
+        tag_frame.pack(fill=tk.X)
+
+        tk.Label(tag_frame, text="🏷️ 태그 (쉼표로 구분):", font=('Arial', 11, 'bold'),
+                bg='#ffffff', fg='#34495e').pack(side=tk.LEFT)
+
+        tags_entry = tk.Entry(tag_frame, width=35, font=('Arial', 10),
+                             relief=tk.FLAT, bg='#f8f9fa', bd=1)
+        tags_entry.pack(side=tk.LEFT, padx=(12, 0))
+        tags_entry.insert(0, current_todo.tags)
+
+        # 버튼 프레임
+        button_frame = tk.Frame(edit_window, bg='#f0f0f0')
+        button_frame.pack(pady=(0, 20))
+
+        def save_changes():
+            """변경사항 저장"""
+            text = text_entry.get("1.0", tk.END).strip()
+            category = category_var.get().strip()
+            tags = tags_entry.get().strip()
+
+            if not text:
+                messagebox.showwarning("경고", "할일 내용을 입력해주세요!")
+                text_entry.focus()
+                return
+
+            try:
+                self.db.update_todo(todo_id, text, category, tags)
+
+                # 새 카테고리인 경우 추가
+                if category and category not in category_combo['values']:
+                    self.db.add_category(category)
+
+                self.refresh_todos()
+                self.status_bar.config(text="할일이 수정되었습니다.")
+                edit_window.destroy()
+                messagebox.showinfo("성공", "할일이 수정되었습니다!")
+
+            except Exception as e:
+                messagebox.showerror("오류", f"할일 수정 중 오류가 발생했습니다: {str(e)}")
+
+        # 저장 버튼
+        save_btn = tk.Button(button_frame, text="💾 저장",
+                           command=save_changes,
+                           font=('Arial', 12, 'bold'),
+                           bg='#3498db', fg='white',
+                           relief=tk.FLAT, padx=25, pady=10,
+                           cursor='hand2')
+        save_btn.pack(side=tk.LEFT, padx=10)
+
+        # 취소 버튼
+        cancel_btn = tk.Button(button_frame, text="❌ 취소",
+                              command=edit_window.destroy,
+                              font=('Arial', 12, 'bold'),
+                              bg='#95a5a6', fg='white',
+                              relief=tk.FLAT, padx=25, pady=10,
+                              cursor='hand2')
+        cancel_btn.pack(side=tk.LEFT, padx=10)
+
+        # 키보드 단축키
+        text_entry.bind('<Control-Return>', lambda e: save_changes())
+        edit_window.bind('<Escape>', lambda e: edit_window.destroy())
+
+        # 포커스 설정
+        text_entry.focus()
+        text_entry.tag_add("sel", "1.0", "end")
+
     def refresh_completed_todos(self):
         self.completed_listbox.delete(0, tk.END)
         
@@ -717,15 +859,23 @@ TodoQueue v{__version__}
         button_frame.pack(side=tk.RIGHT, padx=15, pady=12)
         
         # Complete button
-        complete_btn = tk.Button(button_frame, text="✅", 
+        complete_btn = tk.Button(button_frame, text="✅",
                                command=lambda: self.complete_todo(todo.id),
                                bg='#27ae60', fg='white', relief=tk.FLAT,
                                font=('Arial', 14), cursor='hand2',
                                width=3, height=1)
         complete_btn.pack(side=tk.TOP, pady=(0, 6))
-        
+
+        # Edit button
+        edit_btn = tk.Button(button_frame, text="✏️",
+                           command=lambda: self.edit_todo(todo.id),
+                           bg='#f39c12', fg='white', relief=tk.FLAT,
+                           font=('Arial', 14), cursor='hand2',
+                           width=3, height=1)
+        edit_btn.pack(side=tk.TOP, pady=(0, 6))
+
         # Delete button
-        delete_btn = tk.Button(button_frame, text="🗑️", 
+        delete_btn = tk.Button(button_frame, text="🗑️",
                              command=lambda: self.delete_todo(todo.id),
                              bg='#e74c3c', fg='white', relief=tk.FLAT,
                              font=('Arial', 14), cursor='hand2',
