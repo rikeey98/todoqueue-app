@@ -821,44 +821,58 @@ TodoQueue v{__version__}
         # Main todo frame
         todo_frame = tk.Frame(self.todos_frame, bg='#ffffff', relief=tk.RAISED, bd=2)
         todo_frame.pack(fill=tk.X, padx=8, pady=4)
-        
-        # Add drag and drop bindings
-        todo_frame.bind("<Button-1>", lambda e, idx=index: self.start_drag(e, idx))
-        todo_frame.bind("<B1-Motion>", self.on_drag)
-        todo_frame.bind("<ButtonRelease-1>", self.on_drop)
-        
+
+        # Drag indicator (왼쪽)
+        drag_label = tk.Label(todo_frame, text="⋮⋮", font=('Arial', 16),
+                             bg='#ffffff', fg='#bdc3c7', cursor='hand2')
+        drag_label.pack(side=tk.LEFT, padx=(8, 0))
+
         # Left frame for content
         content_frame = tk.Frame(todo_frame, bg='#ffffff')
         content_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=15, pady=12)
-        
-        # Todo text
-        text_label = tk.Label(content_frame, text=todo.text, 
-                             font=('Arial', 12), bg='#ffffff', fg='#2c3e50',
-                             anchor=tk.W, justify=tk.LEFT, wraplength=450)
-        text_label.pack(anchor=tk.W)
-        
+
+        # Todo text - Text 위젯으로 변경하여 선택 가능하게
+        text_widget = tk.Text(content_frame, height=1, font=('Arial', 12),
+                             bg='#ffffff', fg='#2c3e50',
+                             wrap=tk.WORD, relief=tk.FLAT, bd=0,
+                             cursor='xterm', selectbackground='#3498db',
+                             selectforeground='white')
+        text_widget.insert("1.0", todo.text)
+        text_widget.config(state=tk.DISABLED)  # 읽기 전용
+        text_widget.pack(anchor=tk.W, fill=tk.X)
+
+        # 텍스트 높이 자동 조정
+        def update_text_height(event=None):
+            lines = text_widget.get("1.0", "end-1c").count('\n') + 1
+            # wraplength 고려하여 줄 수 계산
+            char_count = len(text_widget.get("1.0", "end-1c"))
+            estimated_lines = max(lines, (char_count // 50) + 1)
+            text_widget.config(height=min(estimated_lines, 5))
+
+        update_text_height()
+
         # Meta info
         meta_info = []
         if todo.category:
             meta_info.append(f"📁 {todo.category}")
         if todo.tags:
             meta_info.append(f"🏷️ {todo.tags}")
-        
+
         created_time = datetime.datetime.fromisoformat(todo.created_at)
         time_str = created_time.strftime("%m/%d %H:%M")
         meta_info.append(f"🕐 {time_str}")
         meta_info.append(f"#{index + 1}")
-        
+
         if meta_info:
             meta_label = tk.Label(content_frame, text=" | ".join(meta_info),
                                  font=('Arial', 9), bg='#ffffff', fg='#7f8c8d',
                                  anchor=tk.W)
             meta_label.pack(anchor=tk.W, pady=(3, 0))
-        
+
         # Right frame for buttons
         button_frame = tk.Frame(todo_frame, bg='#ffffff')
         button_frame.pack(side=tk.RIGHT, padx=15, pady=12)
-        
+
         # Complete button
         complete_btn = tk.Button(button_frame, text="✅",
                                command=lambda: self.complete_todo(todo.id),
@@ -882,14 +896,10 @@ TodoQueue v{__version__}
                              font=('Arial', 14), cursor='hand2',
                              width=3, height=1, anchor=tk.CENTER)
         delete_btn.pack(side=tk.TOP)
-        
-        # Drag indicator
-        drag_label = tk.Label(todo_frame, text="⋮⋮", font=('Arial', 16), 
-                             bg='#ffffff', fg='#bdc3c7', cursor='hand2')
-        drag_label.pack(side=tk.LEFT, padx=(8, 0))
-        
-        # Bind drag events to all child widgets
-        for widget in [todo_frame, content_frame, text_label, button_frame, drag_label]:
+
+        # Bind drag events to specific widgets only (텍스트 위젯 제외)
+        drag_widgets = [todo_frame, content_frame, button_frame, drag_label, meta_label]
+        for widget in drag_widgets:
             if hasattr(widget, 'bind'):
                 widget.bind("<Button-1>", lambda e, idx=index: self.start_drag(e, idx))
                 widget.bind("<B1-Motion>", self.on_drag)
