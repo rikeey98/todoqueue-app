@@ -746,9 +746,11 @@ class TodoQueueApp:
 🔹 할일 관리:
    • '할일 목록' 탭에서 대기중인 할일 확인
    • 드래그&드롭으로 순서 조정
+   • 할일 텍스트 더블클릭으로 빠른 수정
    • ✅ 버튼으로 완료 처리
    • ✏️ 버튼으로 수정
    • 🚽 버튼으로 삭제
+   • 텍스트 드래그로 선택 및 복사 가능
 
 🔹 완료된 할일:
    • '완료된 할일' 탭에서 완료 이력 확인
@@ -840,6 +842,9 @@ TodoQueue v{__version__}
         text_widget.insert("1.0", todo.text)
         text_widget.config(state=tk.DISABLED)  # 읽기 전용
         text_widget.pack(anchor=tk.W, fill=tk.X)
+
+        # 더블클릭으로 수정 다이얼로그 열기
+        text_widget.bind("<Double-Button-1>", lambda e, tid=todo.id: self.edit_todo(tid))
 
         # 텍스트 높이 자동 조정
         def update_text_height(event=None):
